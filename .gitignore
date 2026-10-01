@@ -1,5 +1,6 @@
 # Local source clones used for verification
 spring-security-src/
+spring-security-vulnerable-7.1.0/
 
 # OS/editor noise
 .DS_Store
