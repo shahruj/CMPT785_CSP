@@ -67,8 +67,16 @@ Each group member should own one vulnerability. The table below is a starting sh
 | Candidate | Impact | Why It Is Useful | Current Evidence |
 |---|---|---|---|
 | `CVE-2026-47842`, deterministic AES/CBC encryption | Confidentiality | Compact source area and clear cryptographic root cause. | Advisory; `crypto/.../AesBytesEncryptor.java`; replacement encryptors. |
-| `CVE-2026-47841`, WebAuthn user verification bypass | Authentication/integrity | Clear object identity/value equality mistake under distributed sessions. | Advisory; `webauthn/.../UserVerificationRequirement.java`; WebAuthn operations/tests. |
+| `CVE-2026-47841`, WebAuthn user verification bypass | Authentication/integrity | Clear object identity/value equality mistake under distributed sessions. Selected for Shahruj's Vulnerability History 4. | Advisory; `webauthn/.../UserVerificationRequirement.java`; WebAuthn operations/tests; see `Report/vulnerability-history-4-cve-2026-47841.md`. |
 | `CVE-2026-41707`, DPoP proof replay | Authentication/integrity | Modern OAuth2 proof-of-possession issue with a cache/replay root cause. | Advisory; `DPoPProofJwtDecoderFactory`; `DPoPProofReplayValidator`. |
+
+### Vulnerability Detail: CVE-2026-47841
+
+Shahruj's prepared deep dive is in `Report/vulnerability-history-4-cve-2026-47841.md`.
+
+Short version: affected Spring Security WebAuthn/passkey flows used object identity (`==`) to check whether `UserVerificationRequirement` was `REQUIRED`. In distributed-session deployments, serialization/deserialization could produce an equivalent `"required"` object that was not the same object reference as the static constant, causing Spring Security to treat user verification as not required. The public fix commit is `a447020c9236e7e258517b0fd327ea50331a65fc` (`Improve Equivalence Tests`), and `git blame` traces the vulnerable checks back to `b0e8730d70ee548cd383ba358ec87e268b52c29b` (`Add Passkeys Support`).
+
+Important scope note: this does not mean anyone can log in without a passkey. The attacker still needs the victim's authenticator or equivalent credential material; the bypass is of PIN/biometric user verification, not of authenticator possession.
 
 ### Vulnerability Detail Starter: CVE-2026-47842
 
@@ -121,12 +129,13 @@ Concrete change for Part 2: build the architecture from Spring Security modules 
 |---|---|---|---|---|---|---|---|
 | A0 | ChatGPT/Codex visible conversation transcript | 2026-09-30 | Visible Codex conversation and tool-action context | Preserve full visible session text and project pivot history | `AI_Sessions/A0-full-visible-session-transcript.md` | Checked against current chat context and generated workspace files | Transcript artifact; use A1+ for verified findings |
 | A1 | ChatGPT/Codex with web search and local shell | 2026-09-30 | Course assignment text, official Spring docs/advisories, local shallow clone at `747f40d...` | Produce Spring Security Domain Analysis starter report material | `AI_Sessions/A1-codex-spring-security-research.md` | Claims checked against official URLs, local `rg`, and Git source paths | Mixed: confirmed/rejected/hypothesis as labelled |
+| A2 | ChatGPT/Codex with web search and local shell | 2026-10-02 | Group preliminary report, official Spring advisory, local Spring Security repository with tags/history | Research and draft Vulnerability History 4 for `CVE-2026-47841` | `AI_Sessions/A2-cve-2026-47841-history-research.md` | Advisory URLs, `git diff`, `git show`, `git blame`, tag checks | Mixed: confirmed/refuted/hypothesis as labelled |
 
 ## Appendix B: Contribution Record Starter
 
 | Team Member | Tasks | AI/tool sessions run | Findings verified |
 |---|---|---|---|
-| Shahruj | Topic pivot, initial Spring Security research setup, source clone, starter report skeleton | A1 | Product overview, assets, vulnerability shortlist |
+| Shahruj | Topic pivot, initial Spring Security research setup, source clone, starter report skeleton, Vulnerability History 4 deep dive for `CVE-2026-47841` | A1, A2 | Product overview, assets, vulnerability shortlist, WebAuthn user verification bypass root cause/fix/introduction |
 | TBD | Vulnerability 1 | TBD | TBD |
 | TBD | Vulnerability 2 | TBD | TBD |
 | TBD | Vulnerability 3 | TBD | TBD |
